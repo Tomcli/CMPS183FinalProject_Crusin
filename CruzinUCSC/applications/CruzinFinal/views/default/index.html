@@ -140,12 +140,10 @@ function calcRadius(radiusVal) {
 
 //Reference from google api example:
 //https://developers.google.com/maps/documentation/javascript/examples/geocoding-simple
-function geocodeMarker(geocoder, resultsMap, address, driver) {
-    geocoder.geocode({'address': address}, function (results, status) {
-        if (status === google.maps.GeocoderStatus.OK) {
+function geocodeMarker(geocoder, resultsMap, address, driver,location) {
             var marker = new google.maps.Marker({
                 map: resultsMap,
-                position: results[0].geometry.location,
+                position: location,
                 animation: google.maps.Animation.DROP
             });
             Markers.push(marker);
@@ -164,10 +162,6 @@ function geocodeMarker(geocoder, resultsMap, address, driver) {
              marker.addListener('click', function() {
                  infowindow.open(resultsMap, marker);
                 });
-        } else {
-            alert('Geocode was not successful for the following reason: ' + status);
-        }
-    });
 }
 
     function placeMarkerAndPanTo(latLng, map) {
@@ -198,7 +192,7 @@ function geocodeMarker(geocoder, resultsMap, address, driver) {
         circle.bindTo('center', marker, 'position');
         map_radius = circle;
 
-        for (var i = 0;i < drivers.length;++i){
+        for (var i = 0;i < drivers.length;i++){
             isDriverInArea(circle, drivers[i].profile_address,drivers[i]);
         }
         google.maps.event.addListener(marker, 'dragend', function(event) {
@@ -237,11 +231,16 @@ function isDriverInArea(circle, address,driver){
         geocoder.geocode({'address': address}, function (results, status) {
         if (status === google.maps.GeocoderStatus.OK) {
             if(circle.getBounds().contains(results[0].geometry.location)) {
-                geocodeMarker(geocoder, map, address,driver);
+                geocodeMarker(geocoder, map, address,driver,results[0].geometry.location);
             }
+        }else {
+            setTimeout(function(){
+            if(circle.getBounds().contains(results[0].geometry.location)) {
+                geocodeMarker(geocoder, map, address,driver,results[0].geometry.location);
+            }},200);
         }
-    });
 
+    });
 };
 //reference from google map api
 function setMapOnAll(map) {
